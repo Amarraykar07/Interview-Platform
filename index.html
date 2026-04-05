@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>InterviewForge — AI Interview Question Generator</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- Background decoration -->
+  <div class="bg-grid"></div>
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+
+  <header class="site-header">
+    <div class="logo">
+      <span class="logo-icon">⬡</span>
+      <span class="logo-text">InterviewForge</span>
+    </div>
+    <span class="badge">Powered by AI</span>
+  </header>
+
+  <main class="main">
+    <!-- Hero -->
+    <section class="hero">
+      <p class="hero-eyebrow">Your Personal Interview Coach</p>
+      <h1 class="hero-title">
+        Generate<br />
+        <em>Smart Interview</em><br />
+        Questions
+      </h1>
+      <p class="hero-subtitle">
+        Tailored technical &amp; HR questions with expert answers — crafted for any role and skill level in seconds.
+      </p>
+    </section>
+
+    <!-- Generator Card -->
+    <div class="card" id="generatorCard">
+      <div class="card-inner">
+        <div class="card-label">Question Generator</div>
+
+        <div class="form-group">
+          <label for="jobRole" class="form-label">Job Role</label>
+          <div class="input-wrapper">
+            <span class="input-icon">💼</span>
+            <input
+              type="text"
+              id="jobRole"
+              class="form-input"
+              placeholder="e.g. Java Developer, Data Analyst, UX Designer…"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="difficulty" class="form-label">Difficulty Level</label>
+          <div class="select-wrapper">
+            <span class="input-icon">🎯</span>
+            <select id="difficulty" class="form-select">
+              <option value="Easy">🟢 Easy — Entry level / Fresher</option>
+              <option value="Medium" selected>🟡 Medium — 2–4 years experience</option>
+              <option value="Hard">🔴 Hard — Senior / Lead level</option>
+            </select>
+            <span class="select-arrow">▾</span>
+          </div>
+        </div>
+
+        <button id="generateBtn" class="btn-generate" onclick="generateQuestions()">
+          <span class="btn-text">Generate Questions</span>
+          <span class="btn-icon">→</span>
+        </button>
+
+        <!-- Error -->
+        <div id="errorBox" class="error-box hidden">
+          <span class="error-icon">⚠</span>
+          <span id="errorMsg">Something went wrong. Please try again.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loadingState" class="loading-state hidden">
+      <div class="loader-ring"></div>
+      <p class="loading-text">Crafting your questions<span class="dots"></span></p>
+      <p class="loading-sub">Our AI is thinking hard for you</p>
+    </div>
+
+    <!-- Output Section -->
+    <section id="outputSection" class="output-section hidden">
+
+      <div class="output-header">
+        <div class="output-meta" id="outputMeta"></div>
+        <button class="btn-copy" onclick="copyAll()" title="Copy all to clipboard">
+          <span>⎘</span> Copy All
+        </button>
+      </div>
+
+      <!-- Technical Questions -->
+      <div class="section-block tech-block">
+        <div class="section-header">
+          <span class="section-icon">⚙️</span>
+          <div>
+            <h2 class="section-title">Technical Questions</h2>
+            <p class="section-count">5 questions with detailed answers</p>
+          </div>
+          <span class="section-badge tech-badge">Technical</span>
+        </div>
+        <div id="technicalQuestions" class="questions-list"></div>
+      </div>
+
+      <!-- HR Questions -->
+      <div class="section-block hr-block">
+        <div class="section-header">
+          <span class="section-icon">🤝</span>
+          <div>
+            <h2 class="section-title">HR Questions</h2>
+            <p class="section-count">3 questions with sample answers</p>
+          </div>
+          <span class="section-badge hr-badge">HR</span>
+        </div>
+        <div id="hrQuestions" class="questions-list"></div>
+      </div>
+
+      <div class="regenerate-bar">
+        <p class="regen-text">Want different questions?</p>
+        <button class="btn-regen" onclick="generateQuestions()">↺ Regenerate</button>
+      </div>
+
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Built with ♥ using Vanilla JS + Vercel Serverless · <span id="year"></span></p>
+  </footer>
+
+  <script src="script.js"></script>
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>
