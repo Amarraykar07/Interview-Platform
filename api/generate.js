@@ -1,55 +1,60 @@
-/* ================================================
-   InterviewForge — Vercel Serverless Function
-   /api/generate.js
-   ================================================
+module.exports = async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-   Environment Variable required:
-     GROQ_API_KEY  — your Groq API key
-                     Get it FREE at: https://console.groq.com/keys
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed.' });
 
-   Model: llama-3.3-70b-versatile
-   (Ultra-fast inference via Groq LPU — free tier available)
-   ================================================ */
-
-export default async function handler(req, res) {
-  // ── Method guard ───────────────────────────────
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed. Use POST.' });
-  }
-
-  // ── Parse body ─────────────────────────────────
   const { role, difficulty } = req.body || {};
+  if (!role) return res.status(400).json({ error: 'Missing role.' });
+  if (!difficulty) return res.status(400).json({ error: 'Missing difficulty.' });
 
-  if (!role || typeof role !== 'string' || role.trim().length === 0) {
-    return res.status(400).json({ error: 'Missing or invalid "role" field.' });
-  }
-  if (!difficulty) {
-    return res.status(400).json({ error: 'Missing "difficulty" field.' });
-  }
-
-  // ── Call Groq ──────────────────────────────────
   try {
     const result = await callGroq(role.trim(), difficulty);
     return res.status(200).json({ result });
   } catch (err) {
-    console.error('[InterviewForge API Error]', err.message);
-    return res.status(500).json({
-      error: err.message || 'Failed to generate questions. Please try again.',
-    });
+    return res.status(500).json({ error: err.message });
   }
-}
+};
 
-// ── Groq API Call ──────────────────────────────
 async function callGroq(role, difficulty) {
   const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) throw new Error('GROQ_API_KEY not set in Vercel environment variables.');
 
-  if (!apiKey) {
-    throw new Error(
-      'Groq API key not configured. Add GROQ_API_KEY to your Vercel environment variables. Get a free key at https://console.groq.com/keys'
-    );
-  }
+  const prompt = `Generate interview questions for the following role:
+Role: ${role}
+Difficulty Level: ${difficulty}
 
-  const prompt = buildPrompt(role, difficulty);
+Use EXACTLY this format:
+
+=== Technical Questions ===
+
+1. [question]
+Answer: [answer]
+
+2. [question]
+Answer: [answer]
+
+3. [question]
+Answer: [answer]
+
+4. [question]
+Answer: [answer]
+
+5. [question]
+Answer: [answer]
+
+=== HR Questions ===
+
+1. [question]
+Answer: [answer]
+
+2. [question]
+Answer: [answer]
+
+3. [question]
+Answer: [answer]`;
 
   const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
@@ -58,76 +63,26 @@ async function callGroq(role, difficulty) {
       'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',   // Best free Groq model — fast & smart
+      model: 'llama-3.3-70b-versatile',
       max_tokens: 2048,
       temperature: 0.75,
       messages: [
         {
           role: 'system',
-          content:
-            'You are an expert technical interviewer with 15+ years of experience. Always follow the exact output format given by the user. Do not add any preamble, commentary, markdown code fences, or extra text outside the required format.',
+          content: 'You are an expert technical interviewer. Follow the exact output format. No extra text.',
         },
-        {
-          role: 'user',
-          content: prompt,
-        },
+        { role: 'user', content: prompt },
       ],
     }),
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    const msg = error?.error?.message || `Groq API error: ${response.status} ${response.statusText}`;
-    throw new Error(msg);
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `Groq error: ${response.status}`);
   }
 
   const data = await response.json();
   const text = data?.choices?.[0]?.message?.content;
-
-  if (!text) throw new Error('Empty response from Groq. Please try again.');
+  if (!text) throw new Error('Empty response from Groq.');
   return text;
-}
-
-// ── Prompt Builder ─────────────────────────────
-function buildPrompt(role, difficulty) {
-  return `Generate interview questions for the following role:
-Role: ${role}
-Difficulty Level: ${difficulty}
-
-Instructions:
-- Provide exactly 5 Technical Questions with detailed answers
-- Provide exactly 3 HR Questions with sample answers
-- Keep answers clear, concise, and helpful for candidates
-- Technical answers should cover key concepts, best practices, and real examples
-- HR answers should follow the STAR method where applicable
-
-Use EXACTLY this format. Do not deviate or add any text outside it:
-
-=== Technical Questions ===
-
-1. [Technical question here]
-Answer: [Detailed answer here]
-
-2. [Technical question here]
-Answer: [Detailed answer here]
-
-3. [Technical question here]
-Answer: [Detailed answer here]
-
-4. [Technical question here]
-Answer: [Detailed answer here]
-
-5. [Technical question here]
-Answer: [Detailed answer here]
-
-=== HR Questions ===
-
-1. [HR question here]
-Answer: [Sample answer here]
-
-2. [HR question here]
-Answer: [Sample answer here]
-
-3. [HR question here]
-Answer: [Sample answer here]`;
 }
