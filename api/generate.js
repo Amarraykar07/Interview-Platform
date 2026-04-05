@@ -14,13 +14,14 @@ module.exports = async function handler(req, res) {
     const result = await callGroq(role.trim(), difficulty);
     return res.status(200).json({ result });
   } catch (err) {
+    console.error('[API Error]', err.message);
     return res.status(500).json({ error: err.message });
   }
 };
 
 async function callGroq(role, difficulty) {
   const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) throw new Error('GROQ_API_KEY not set in Vercel environment variables.');
+  if (!apiKey) throw new Error('GROQ_API_KEY not set.');
 
   const prompt = `Generate interview questions for the following role:
 Role: ${role}
@@ -69,7 +70,7 @@ Answer: [answer]`;
       messages: [
         {
           role: 'system',
-          content: 'You are an expert technical interviewer. Follow the exact output format. No extra text.',
+          content: 'You are an expert technical interviewer. Follow the exact output format. No extra text, no markdown fences.',
         },
         { role: 'user', content: prompt },
       ],
